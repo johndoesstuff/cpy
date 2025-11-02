@@ -5,7 +5,7 @@ TOKEN_SPEC = [
     ('COMMENT', r'/\*.*?\*/'),
     ('NUMBER',  r'\b\d+(\.\d+)?\b'),
     ('STRING',  r'\".*?\"|\'.*?\''),
-    ('OP',      r'[:=+\-*/(){}]'),
+    ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!|]'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
 ]
@@ -39,6 +39,8 @@ def main():
         sys.exit(1)
 
     filename = sys.argv[1]
+    output_file = sys.argv[2] if len(sys.argv) > 2 else None
+
 
     # read
     with open(filename, 'r', encoding='utf-8') as f:
@@ -49,7 +51,12 @@ def main():
     py_tokens = tok_topy(tokens)
     py_code = c_untokenize(py_tokens)
 
-    print(py_code)
+    if output_file:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(py_code)
+    else:
+        print(py_code)
+
 
 if __name__ == "__main__":
     main()

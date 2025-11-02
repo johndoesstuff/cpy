@@ -1,11 +1,5 @@
-import tokenize, re
+import tokenize, re, sys
 from io import BytesIO
-
-code = b'''
-def foo(x):
-    # hello
-    return x + 1
-'''
 
 # convert token stream to c-like tokens
 def tok_toc(tokens):
@@ -20,26 +14,28 @@ def tok_toc(tokens):
             yield tok
     return tokens
 
-
-print(c_like)
-
 def main():
     if len(sys.argv) < 2:
         print("Usage: python tocpy.py <filename>")
         sys.exit(1)
 
     filename = sys.argv[1]
+    output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
     # read
     with open(filename, 'r', encoding='utf-8') as f:
         code = f.read()
 
     # tokenize, convert, and untokenize
-    tokens = tokenize.tokenize(BytesIO(code).readline)
+    tokens = tokenize.tokenize(BytesIO(code.encode('utf-8')).readline)
     tokens_c = tok_toc(tokens)
     c_like = tokenize.untokenize(tokens_c).decode('utf-8')
 
-    print(c_like)
+    if output_file:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(c_like)
+    else:
+        print(c_like)
 
 if __name__ == "__main__":
     main()
