@@ -6,10 +6,12 @@ def tok_toc(tokens):
     for tok in tokens:
         if tok.type == tokenize.NAME and tok.string == "def":
             yield tok._replace(string="func")
+        elif tok.type == tokenize.NAME and tok.string == "func": # avoid namespace collisions
+            yield tok._replace(string="def")
         elif tok.type == tokenize.COMMENT:
             # // is floor div
-            comment_text = tok.string[1:].strip()
-            yield tok._replace(string=f"/* {comment_text} */")
+            comment_text = tok.string[1:]
+            yield tok._replace(string=f"/*{comment_text}*/")
         else:
             yield tok
     return tokens

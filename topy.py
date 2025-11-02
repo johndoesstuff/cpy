@@ -23,10 +23,12 @@ def tok_topy(tokens):
     for kind, value in tokens:
         if kind == 'FUNC':
             yield 'def'
+        elif kind == 'NAME' and value == 'def':
+            yield 'func'
         elif kind == 'COMMENT':
             # remove /* */ and convert to #
-            comment_text = value[2:-2].strip()
-            yield f"# {comment_text}"
+            comment_text = value[2:-2]
+            yield f"#{comment_text}"
         else:
             yield value
 
