@@ -3,12 +3,10 @@ import re, sys
 TOKEN_SPEC = [
     ('FUNC',    r'\bfunc\b'),
     ('NUMBER',  r'\b\d+(\.\d+)?\b'),
-    ('ML_STRINGD',  r'(?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\"'),
-    ('ML_STRING',  r'(?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\''),
-    ('STRING',  r'(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\')'),
-    #('STRING', r'("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"([^"\\\n]|\\.)*"|\'([^\'\\\n]|\\.)*\')')
+    ('STRING',  r'((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')|(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\')'),
     ('COMMENT', r'/\*.*?\*/'),
     ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!\|\~?\^\\&;]'),
+    ('FSTRING',  r'(f)(((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')|(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\'))'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
 ]
@@ -37,7 +35,7 @@ def tok_topy(tokens):
 
 def c_untokenize(tokens):
     code_str = ''.join(tokens)
-    # by default pythons tokenizer ignores whitespace differences in \. unsure if this is intended behaviour or not but to account for it replace all instances to add whitespace
+    # by default pythons tokenizer ignores whitespace differences in \. this is intended behaviour but to account for it replace all instances to add whitespace
     code_str = re.sub(r'(.)(\\\n)', r'\1 \2', code_str)
 
     return code_str
@@ -51,7 +49,6 @@ def main():
     filename = sys.argv[1]
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
-
     # read
     with open(filename, 'r', encoding='utf-8') as f:
         code = f.read()
@@ -60,7 +57,6 @@ def main():
     tokens = c_like_tokenize(code)
     py_tokens = tok_topy(tokens)
     py_code = c_untokenize(py_tokens)
-
 
     if output_file:
         with open(output_file, 'w', encoding='utf-8') as f:

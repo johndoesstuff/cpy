@@ -1,9 +1,20 @@
 import tokenize, re, sys
 from io import BytesIO
 
+
 # convert token stream to c-like tokens
 def tok_toc(tokens):
+    fstring_level = 0;
     for tok in tokens:
+        if tok.type == tokenize.FSTRING_START:
+            fstring_level += 1
+        elif tok.type == tokenize.FSTRING_END:
+            fstring_level -= 1
+
+        if fstring_level > 0:
+            yield tok
+            continue
+
         if tok.type == tokenize.NAME and tok.string == "def":
             yield tok._replace(string="func")
         elif tok.type == tokenize.NAME and tok.string == "func": # avoid namespace collisions
@@ -40,6 +51,9 @@ def main():
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(c_like)
     else:
+        tokens = tokenize.tokenize(BytesIO(code.encode('utf-8')).readline)
+        for tok in tokens:
+            print(tok)
         print(c_like)
 
 if __name__ == "__main__":
