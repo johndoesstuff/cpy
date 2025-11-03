@@ -2,10 +2,13 @@ import re, sys
 
 TOKEN_SPEC = [
     ('FUNC',    r'\bfunc\b'),
-    ('COMMENT', r'/\*.*?\*/'),
     ('NUMBER',  r'\b\d+(\.\d+)?\b'),
-    ('STRING',  r'\".*?\"|\'.*?\''),
-    ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!|]'),
+    ('ML_STRINGD',  r'(?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\"'),
+    ('ML_STRING',  r'(?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\''),
+    ('STRING',  r'(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\')'),
+    #('STRING', r'("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"([^"\\\n]|\\.)*"|\'([^\'\\\n]|\\.)*\')')
+    ('COMMENT', r'/\*.*?\*/'),
+    ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!\|\~?\^\\&;]'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
 ]
@@ -33,7 +36,12 @@ def tok_topy(tokens):
             yield value
 
 def c_untokenize(tokens):
-    return ''.join(tokens)
+    code_str = ''.join(tokens)
+    # by default pythons tokenizer ignores whitespace differences in \. unsure if this is intended behaviour or not but to account for it replace all instances to add whitespace
+    code_str = re.sub(r'(.)(\\\n)', r'\1 \2', code_str)
+
+    return code_str
+
 
 def main():
     if len(sys.argv) < 2:
@@ -53,10 +61,14 @@ def main():
     py_tokens = tok_topy(tokens)
     py_code = c_untokenize(py_tokens)
 
+
     if output_file:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(py_code)
     else:
+        tokens = c_like_tokenize(code)
+        for tok in tokens:
+            print(tok)
         print(py_code)
 
 

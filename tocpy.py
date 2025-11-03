@@ -33,6 +33,9 @@ def main():
     tokens_c = tok_toc(tokens)
     c_like = tokenize.untokenize(tokens_c).decode('utf-8')
 
+    # by default pythons tokenizer ignores whitespace differences in \. unsure if this is intended behaviour or not but to account for it replace all instances to add whitespace
+    c_like = re.sub(r'\\\n', r'\\ \n', c_like)
+
     if output_file:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(c_like)
