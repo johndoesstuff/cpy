@@ -1,18 +1,30 @@
-import re, sys
+import re, sys, tokenize
 
 TOKEN_SPEC = [
     ('FUNC',    r'\bfunc\b'),
     ('NUMBER',  r'\b\d+(\.\d+)?\b'),
-    ('STRING',  r'((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')|(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\')'),
+    ('STRINGM',  r'((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')'),
+    ('STRINGD',  r'\"(?:\\\n|\\.|[^\"\\])*\"'),
+    ('STRING',  r'\'(?:\\\n|\\.|[^\'\\])*\''),
     ('COMMENT', r'/\*.*?\*/'),
     ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!\|\~?\^\\&;]'),
-    ('FSTRING',  r'(f)(((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')|(\"(?:[^\"\\\n]|\\.)*\"|\'(?:[^\'\\\n]|\\.)*\'))'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
 ]
 
 token_regex = '|'.join(f'(?P<{name}>{regex})' for name, regex in TOKEN_SPEC)
 pattern = re.compile(token_regex, re.DOTALL)
+
+
+def get_file_encoding(filename):
+    with open(filename, 'rb') as f:
+        encoding, _ = tokenize.detect_encoding(f.readline)
+        return encoding
+
+def read_python_file(filename, encoding):
+    with open(filename, 'rb') as f:
+        f.seek(0)
+        return f.read().decode(encoding)
 
 def c_like_tokenize(code):
     for m in pattern.finditer(code):
@@ -35,9 +47,6 @@ def tok_topy(tokens):
 
 def c_untokenize(tokens):
     code_str = ''.join(tokens)
-    # by default pythons tokenizer ignores whitespace differences in \. this is intended behaviour but to account for it replace all instances to add whitespace
-    code_str = re.sub(r'(.)(\\\n)', r'\1 \2', code_str)
-
     return code_str
 
 
@@ -50,8 +59,8 @@ def main():
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
     # read
-    with open(filename, 'r', encoding='utf-8') as f:
-        code = f.read()
+    encoding = get_file_encoding(filename)
+    code = read_python_file(filename, encoding)
 
     # tokenize, convert, and untokenize
     tokens = c_like_tokenize(code)
@@ -59,7 +68,7 @@ def main():
     py_code = c_untokenize(py_tokens)
 
     if output_file:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, 'w', encoding=encoding) as f:
             f.write(py_code)
     else:
         tokens = c_like_tokenize(code)

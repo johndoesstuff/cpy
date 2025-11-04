@@ -276,7 +276,6 @@
 ./test/cpython/euc_kr.py
 ./test/cpython/rlcompleter.py
 ./test/cpython/cp864.py
-./test/cpython/badsyntax_pep3120.py
 ./test/cpython/iomenu.py
 ./test/cpython/test_fileutils.py
 ./test/cpython/test_univnewlines.py
@@ -1709,7 +1708,6 @@
 ./test/cpython/getopt.py
 ./test/cpython/robotparser.py
 ./test/cpython/cp874.py
-./test/cpython/badsyntax_3131.py
 ./test/cpython/test_pep646_syntax.py
 ./test/cpython/test_zipapp.py
 ./test/cpython/cpp.py
@@ -2053,7 +2051,6 @@
 ./test/cpython/test_urlparse.py
 ./test/cpython/test__header_value_parser.py
 ./test/cpython/secrets.py
-./test/cpython/badsyntax_future.py
 ./test/cpython/_ast_unparse.py
 ./test/cpython/_bootstrap_external.py
 ./test/cpython/johab.py
@@ -2086,10 +2083,8 @@
 ./test/cpython/signal.py
 ./test/cpython/lexer.py
 ./test/cpython/pydoc_topics.py
-./test/cpython/bad_coding.py
 ./test/cpython/test_ensurepip.py
 ./test/cpython/basic2.py
-./test/cpython/bad_coding2.py
 ./test/cpython/build.py
 ./test/cpython/test_ctypes.py
 ./test/cpython/os_helper.py

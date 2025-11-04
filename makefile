@@ -4,14 +4,27 @@
 PY_FILES := $(shell cat test_files.txt)
 
 test:
-	@for file in $(PY_FILES); do \
+	@errors=0; \
+	failed_files=""; \
+	for file in $(PY_FILES); do \
 		echo "Testing $$file..."; \
 		cpy_file="$${file%.py}.cpy"; \
 		round_file="$${file%.py}_round.py"; \
 		python3 tocpy.py "$$file" "$$cpy_file"; \
 		python3 topy.py "$$cpy_file" "$$round_file"; \
-		diff -w "$$file" "$$round_file" || echo "Differences found in $$file"; \
-	done
+		if ! diff "$$file" "$$round_file"; then \
+			errors=$$((errors + 1)); \
+			failed_files="$$failed_files $$file"; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "=============================="; \
+	if [ $$errors -eq 0 ]; then \
+		echo "All tests passed!"; \
+	else \
+		echo "$$errors/2152 test(s) failed."; \
+		echo "Failed files:$$failed_files"; \
+	fi
 
 testtok:
 	@for file in $(PY_FILES); do \

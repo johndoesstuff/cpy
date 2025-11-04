@@ -1,28 +1,32 @@
-import tokenize, re, sys
+import tokenize_rt, re, sys
 from io import BytesIO
 
+def read_python_file(filename, encoding):
+    with open(filename, 'rb') as f:
+        f.seek(0)
+        return f.read().decode(encoding)
 
 # convert token stream to c-like tokens
 def tok_toc(tokens):
     fstring_level = 0;
     for tok in tokens:
-        if tok.type == tokenize.FSTRING_START:
+        if tok.name == 'FSTRING_START':
             fstring_level += 1
-        elif tok.type == tokenize.FSTRING_END:
+        elif tok.name == 'FSTRING_END':
             fstring_level -= 1
 
         if fstring_level > 0:
             yield tok
             continue
 
-        if tok.type == tokenize.NAME and tok.string == "def":
-            yield tok._replace(string="func")
-        elif tok.type == tokenize.NAME and tok.string == "func": # avoid namespace collisions
-            yield tok._replace(string="def")
-        elif tok.type == tokenize.COMMENT:
+        if tok.name == 'NAME' and tok.src == "def":
+            yield tok._replace(src="func")
+        elif tok.name == 'NAME' and tok.src == "func": # avoid namespace collisions
+            yield tok._replace(src="def")
+        elif tok.name == 'COMMENT':
             # // is floor div
-            comment_text = tok.string[1:]
-            yield tok._replace(string=f"/*{comment_text}*/")
+            comment_text = tok.src[1:]
+            yield tok._replace(src=f"/*{comment_text}*/")
         else:
             yield tok
     return tokens
@@ -37,21 +41,17 @@ def main():
 
     # read
     with open(filename, 'r', encoding='utf-8') as f:
-        code = f.read()
+        src = f.read()
 
     # tokenize, convert, and untokenize
-    tokens = tokenize.tokenize(BytesIO(code.encode('utf-8')).readline)
-    tokens_c = tok_toc(tokens)
-    c_like = tokenize.untokenize(tokens_c).decode('utf-8')
-
-    # by default pythons tokenizer ignores whitespace differences in \. unsure if this is intended behaviour or not but to account for it replace all instances to add whitespace
-    c_like = re.sub(r'\\\n', r'\\ \n', c_like)
+    tokens = tokenize_rt.src_to_tokens(src)
+    tokens_c = list(tok_toc(tokens))
+    c_like = tokenize_rt.tokens_to_src(tokens_c)
 
     if output_file:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(c_like)
     else:
-        tokens = tokenize.tokenize(BytesIO(code.encode('utf-8')).readline)
         for tok in tokens:
             print(tok)
         print(c_like)
