@@ -26,7 +26,8 @@ def tok_toc(tokens):
         elif tok.name == 'COMMENT':
             # // is floor div
             comment_text = tok.src[1:]
-            yield tok._replace(src=f"/*{comment_text}*/")
+            comment_text = comment_text.replace("*/", "\\*/");
+            yield tok._replace(src=f"/*{comment_text} */") # whitespace after to avoid (# \) -> (/* \*/) -> (# ->)
         else:
             yield tok
     return tokens

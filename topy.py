@@ -6,7 +6,7 @@ TOKEN_SPEC = [
     ('STRINGM',  r'((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')'),
     ('STRINGD',  r'\"(?:\\\n|\\.|[^\"\\])*\"'),
     ('STRING',  r'\'(?:\\\n|\\.|[^\'\\])*\''),
-    ('COMMENT', r'/\*.*?\*/'),
+    ('COMMENT', r'/\*(?:[^*\\]|\\.|(?:\*+(?!/)))*\*/'),
     ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!\|\~?\^\\&;]'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
@@ -40,7 +40,9 @@ def tok_topy(tokens):
             yield 'func'
         elif kind == 'COMMENT':
             # remove /* */ and convert to #
-            comment_text = value[2:-2]
+            comment_text = value[2:-3]
+            # for handling cases like: (# */) -> (/* \*/*/) -> (# */)
+            comment_text = comment_text.replace("\\*/", "*/")
             yield f"#{comment_text}"
         else:
             yield value

@@ -7,3 +7,4 @@ Features:
 - `def` is now `func`
   - variables named `func` are now named `def`
 - Comments use `/* ... */` instead of `# ...`
+  - to escape comments use `{code} /* ... \*/ ... */ {code}`
