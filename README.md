@@ -5,6 +5,7 @@ As a language I really want to like python. However the syntax of python makes i
 Features:
 
 - `def` is now `func`
+- `class` is now `struct`
   - variables named `func` are now named `def`
 - Comments use `/* ... */` instead of `# ...`
   - to escape comments use `{code} /* ... \*/ ... */ {code}`
