@@ -57,7 +57,6 @@ def tok_toc(tokens):
 
         if fstring_level > 0:
             i += 1
-            yield tok
             continue
 
         tok = swap_keywords(tok, keyword_swaps)
@@ -65,16 +64,31 @@ def tok_toc(tokens):
         if tok.name == 'NAME' and tok.src == "is":
             if (next_token and next_token.name == 'NAME' and next_token.src == 'not'):
                 i = j
-                yield tok._replace(src="!==")
+                tokens[i] = tok._replace(src="!==")
             else:
-                yield tok._replace(src="===")
+                tokens[i] = tok._replace(src="===")
         elif tok.name == 'COMMENT':
             # // is floor div
             comment_text = tok.src[1:]
             comment_text = comment_text.replace("*/", "\\*/");
-            yield tok._replace(src=f"/*{comment_text} */") # whitespace after to avoid (# \) -> (/* \*/) -> (# ->)
+            tokens[i] = tok._replace(src=f"/*{comment_text} */") # whitespace after to avoid (# \) -> (/* \*/) -> (# ->)
+        elif tok.name == 'INDENT':
+            # we have indented, there must exist a : that has caused us to do this, replace it with {
+            prev_colon = None
+            j = i - 1
+            while j >= 0:
+                pt = tokens[j]
+                if pt.name == 'OP':
+                    prev_colon = pt
+                    break
+                j -= 1
+            assert prev_colon.src == ':'
+            tokens[j] = prev_colon._replace(src=" {")
+            tokens[i] = tok
+        elif tok.name == 'DEDENT':
+            tokens[i] = tok._replace(src=tok.src+"} ")
         else:
-            yield tok
+            tokens[i] = tok
 
         i += 1
     return tokens

@@ -96,31 +96,55 @@ def tok_topy(tokens):
 
         # logic
         if kind == 'AND':
-            yield 'and'
+            tokens[i].value = 'and'
         elif kind == 'OR':
-            yield 'or'
+            tokens[i].value = 'or'
         elif kind == 'IS':
-            yield 'is'
+            tokens[i].value = 'is'
         elif kind == 'ISNOT':
-            yield 'is not'
+            tokens[i].value = 'is not'
         elif kind == 'NOT':
-            yield 'not'
+            tokens[i].value = 'not'
 
         # else if goes back to elif
         elif kind == 'NAME' and value == 'else':
             if next_kind == 'NAME' and next_value == 'if':
-                yield 'elif'
+                tokens[i].value = 'elif'
                 i = j  # skip over the 'if' token
             else:
-                yield 'else'
+                tokens[i].value = 'else'
 
         # strip comments
         elif kind == 'COMMENT':
             comment_text = value[2:-3].replace("\\*/", "*/")
-            yield f"#{comment_text}"
+            tokens[i].value = f"#{comment_text}"
         else:
-            yield value
+            tokens[i].value = value
 
+        # check if starting block and if so replace {}
+        block_starts = [
+            'class',
+            'def',
+            'if',
+            'elif',
+            'else',
+            'for',
+            'while',
+            'except',
+            'finally',
+            'with',
+        ]
+
+        kind, value = tokens[i]
+        if kind == 'NAME' and value in block_starts:
+            next_kind = next_value = None
+            j = i + 1
+            while j < len(tokens):
+                nk, nv = tokens[j]
+                if nk != 'WS':  # or 'WHITESPACE'
+                    next_kind, next_value = nk, nv
+                    break
+                j += 1
         i += 1
 
 def c_untokenize(tokens):
