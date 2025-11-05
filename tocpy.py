@@ -1,4 +1,4 @@
-import tokenize_rt, re, sys
+import tokenize_rt, re, sys, tokenize
 from io import BytesIO
 
 def read_python_file(filename, encoding):
@@ -41,8 +41,11 @@ def main():
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
     # read
-    with open(filename, 'r', encoding='utf-8') as f:
-        src = f.read()
+    with open(filename, 'rb') as f:
+        encoding, _ = tokenize.detect_encoding(f.readline)
+        f.seek(0)
+        src_bytes = f.read()
+        src = src_bytes.decode(encoding)
 
     # tokenize, convert, and untokenize
     tokens = tokenize_rt.src_to_tokens(src)
@@ -50,7 +53,7 @@ def main():
     c_like = tokenize_rt.tokens_to_src(tokens_c)
 
     if output_file:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, 'w', encoding=encoding) as f:
             f.write(c_like)
     else:
         for tok in tokens:

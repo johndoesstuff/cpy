@@ -15,16 +15,32 @@ TOKEN_SPEC = [
 token_regex = '|'.join(f'(?P<{name}>{regex})' for name, regex in TOKEN_SPEC)
 pattern = re.compile(token_regex, re.DOTALL)
 
+encoding = None
 
 def get_file_encoding(filename):
+    global encoding
     with open(filename, 'rb') as f:
         encoding, _ = tokenize.detect_encoding(f.readline)
         return encoding
 
-def read_python_file(filename, encoding):
+def read_python_file(filename):
+    global encoding
     with open(filename, 'rb') as f:
-        f.seek(0)
-        return f.read().decode(encoding)
+        src_bytes = f.read()
+
+    # try to detect encoding
+    if encoding is None:
+        try:
+            encoding, _ = tokenize.detect_encoding(BytesIO(src_bytes).readline)
+        except (SyntaxError, LookupError):
+            encoding = 'utf-8'
+
+    # latin1 fallback if utf-8 fails
+    try:
+        return src_bytes.decode(encoding)
+    except UnicodeDecodeError:
+        encoding = 'latin1'
+        return src_bytes.decode('latin1')
 
 def c_like_tokenize(code):
     for m in pattern.finditer(code):
@@ -53,6 +69,7 @@ def c_untokenize(tokens):
 
 
 def main():
+    global encoding
     if len(sys.argv) < 2:
         print("Usage: python topy.py <filename>")
         sys.exit(1)
@@ -62,7 +79,7 @@ def main():
 
     # read
     encoding = get_file_encoding(filename)
-    code = read_python_file(filename, encoding)
+    code = read_python_file(filename)
 
     # tokenize, convert, and untokenize
     tokens = c_like_tokenize(code)
