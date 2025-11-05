@@ -9,3 +9,10 @@ Features:
 - Comments use `/* ... */` instead of `# ...`
   - to escape comments use `{code} /* ... \*/ ... */ {code}`
 - `elif` has been replaced by `else if`
+- Boolean logic has been replaced with C-like operators
+  - `and    ->  &&`
+  - `or     ->  ||`
+  - `is     ->  ===`
+  - `not    ->  !`
+  - `is not ->  !==`
+- `True` `False` and `None` are now `true` `false` and `NULL`

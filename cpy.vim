@@ -47,13 +47,13 @@ endif
 "
 " python3 -c 'import keyword, pprint; pprint.pprint(keyword.kwlist + keyword.softkwlist, compact=True)'
 "
-syn keyword pythonStatement	false None true
+syn keyword pythonStatement	false NULL true
 syn keyword pythonStatement	as assert break continue del global
 syn keyword pythonStatement	lambda nonlocal pass return with yield
 syn keyword pythonStatement	class func nextgroup=pythonFunction skipwhite
 syn keyword pythonConditional	else if
 syn keyword pythonRepeat	for while
-syn keyword pythonOperator	and in is not or
+syn keyword pythonOperator	in
 syn keyword pythonException	except finally raise try
 syn keyword pythonInclude	from import
 syn keyword pythonAsync		async await
@@ -163,7 +163,7 @@ endif
 if !exists("python_no_builtin_highlight")
   " built-in constants
   " 'False', 'True', and 'None' are also reserved words in Python 3
-  syn keyword pythonBuiltin	false true None
+  syn keyword pythonNumber	false true NULL
   syn keyword pythonBuiltin	NotImplemented Ellipsis __debug__
   " constants added by the `site` module
   syn keyword pythonBuiltin	quit exit copyright credits license

@@ -2,12 +2,17 @@ import re, sys, tokenize
 from io import BytesIO
 
 TOKEN_SPEC = [
-    ('FUNC',    r'\bfunc\b'),
     ('NUMBER',  r'\b\d+(\.\d+)?\b'),
     ('STRINGM',  r'((?<!\\)(?:\\\\)*\"\"\"[\s\S]*?(?<!\\)(?:\\\\)*\"\"\")|((?<!\\)(?:\\\\)*\'\'\'[\s\S]*?(?<!\\)(?:\\\\)*\'\'\')'),
     ('STRINGD',  r'\"(?:\\\n|\\.|[^\"\\])*\"'),
     ('STRING',  r'\'(?:\\\n|\\.|[^\'\\])*\''),
     ('COMMENT', r'/\*(?:[^*\\]|\\.|(?:\*+(?!/)))*\*/'),
+    ('AND',     r'&&'),
+    ('OR',      r'\|\|'),
+    ('IS',      r'==='),
+    ('ISNOT',   r'!=='),
+    ('NEQ',     r'!='),
+    ('NOT',     r'!'),
     ('OP',      r'[:=+\-*/(){}\.,<>%\[\]@!\|\~?\^\\&;]'),
     ('NAME',    r'\b\w+\b'),
     ('WS',      r'\s+'),
@@ -66,7 +71,7 @@ def tok_topy(tokens):
             j += 1
 
         # replace func with def
-        if kind == 'FUNC':
+        if kind == 'NAME' and value == 'func':
             yield 'def'
         elif kind == 'NAME' and value == 'def':
             yield 'func'
@@ -80,6 +85,24 @@ def tok_topy(tokens):
             yield 'False'
         elif kind == 'NAME' and value == 'False':
             yield 'false'
+
+        # logic
+        elif kind == 'AND':
+            yield 'and'
+        elif kind == 'OR':
+            yield 'or'
+        elif kind == 'IS':
+            yield 'is'
+        elif kind == 'ISNOT':
+            yield 'is not'
+        elif kind == 'NOT':
+            yield 'not'
+
+        # NULL -> None
+        elif kind == 'NAME' and value == 'NULL':
+            yield 'None'
+        elif kind == 'NAME' and value == 'None':
+            yield 'NULL'
 
         # else if goes back to elif
         elif kind == 'NAME' and value == 'else':

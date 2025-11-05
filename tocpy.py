@@ -9,13 +9,28 @@ def read_python_file(filename, encoding):
 # convert token stream to c-like tokens
 def tok_toc(tokens):
     fstring_level = 0;
-    for tok in tokens:
+    tokens = list(tokens)
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+
+        next_token = None
+        j = i + 1
+        while j < len(tokens):
+            nt = tokens[j]
+            if nt.name != 'UNIMPORTANT_WS':
+                next_token = nt
+                break
+            j += 1
+
+
         if tok.name == 'FSTRING_START':
             fstring_level += 1
         elif tok.name == 'FSTRING_END':
             fstring_level -= 1
 
         if fstring_level > 0:
+            i += 1
             yield tok
             continue
 
@@ -35,6 +50,26 @@ def tok_toc(tokens):
         elif tok.name == 'NAME' and tok.src == "false": # avoid namespace collisions
             yield tok._replace(src="False")
 
+        # logic
+        elif tok.name == 'NAME' and tok.src == "and":
+            yield tok._replace(src="&&")
+        elif tok.name == 'NAME' and tok.src == "or":
+            yield tok._replace(src="||")
+        elif tok.name == 'NAME' and tok.src == "is":
+            if (next_token and next_token.name == 'NAME' and next_token.src == 'not'):
+                i = j
+                yield tok._replace(src="!==")
+            else:
+                yield tok._replace(src="===")
+        elif tok.name == 'NAME' and tok.src == "not":
+            yield tok._replace(src="!")
+
+        # None -> NULL
+        elif tok.name == 'NAME' and tok.src == "None":
+            yield tok._replace(src="NULL")
+        elif tok.name == 'NAME' and tok.src == "NULL": # avoid namespace collisions
+            yield tok._replace(src="None")
+
         # break elif into else and if
         elif tok.name == 'NAME' and tok.src == "elif":
             yield tok._replace(src="else if")
@@ -46,6 +81,8 @@ def tok_toc(tokens):
             yield tok._replace(src=f"/*{comment_text} */") # whitespace after to avoid (# \) -> (/* \*/) -> (# ->)
         else:
             yield tok
+
+        i += 1
     return tokens
 
 def main():
