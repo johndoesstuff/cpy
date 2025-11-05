@@ -50,12 +50,12 @@ endif
 syn keyword pythonStatement	false NULL true
 syn keyword pythonStatement	as assert break continue del global
 syn keyword pythonStatement	lambda nonlocal pass return with yield
-syn keyword pythonStatement	class func nextgroup=pythonFunction skipwhite
+syn keyword pythonStatement	struct func nextgroup=pythonFunction skipwhite
 syn keyword pythonConditional	else if
 syn keyword pythonRepeat	for while
 syn keyword pythonOperator	in
 syn keyword pythonException	except finally raise try
-syn keyword pythonInclude	from import
+syn keyword pythonInclude	using include
 syn keyword pythonAsync		async await
 
 " Soft keywords
@@ -249,7 +249,7 @@ if !exists("python_no_doctest_highlight")
 endif
 
 " Sync at the beginning of class, function, or method definition.
-syn sync match pythonSync grouphere NONE "^\%(func\|class\)\s\+\h\w*\s*[(:]"
+syn sync match pythonSync grouphere NONE "^\%(func\|struct\)\s\+\h\w*\s*[(:]"
 
 " The default highlight links.  Can be overridden later.
 hi def link pythonStatement		Statement

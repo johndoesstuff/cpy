@@ -54,7 +54,29 @@ def c_like_tokenize(code):
         value = m.group()
         yield kind, value
 
+def swap_keywords(kind, value, swaps):
+    # swap keywords bidirectionally
+    if kind != 'NAME':
+        return value
+
+    for orig, repl in swaps.items():
+        if value == orig:
+            return repl
+        elif value == repl:
+            return orig
+    return value
+
+
 def tok_topy(tokens):
+    keyword_swaps = {
+        "func":    "def",
+        "struct":  "class",
+        "include": "import",
+        "using":   "from",
+        "true":    "True",
+        "false":   "False",
+        "NULL":    "None",
+    }
     tokens = list(tokens)
     i = 0
     while i < len(tokens):
@@ -69,25 +91,11 @@ def tok_topy(tokens):
                 next_kind, next_value = nk, nv
                 break
             j += 1
-
-        # replace func with def
-        if kind == 'NAME' and value == 'func':
-            yield 'def'
-        elif kind == 'NAME' and value == 'def':
-            yield 'func'
-
-        # make true and false uppercase again
-        elif kind == 'NAME' and value == 'true':
-            yield 'True'
-        elif kind == 'NAME' and value == 'True':
-            yield 'true'
-        elif kind == 'NAME' and value == 'false':
-            yield 'False'
-        elif kind == 'NAME' and value == 'False':
-            yield 'false'
+        
+        value = swap_keywords(kind, value, keyword_swaps)
 
         # logic
-        elif kind == 'AND':
+        if kind == 'AND':
             yield 'and'
         elif kind == 'OR':
             yield 'or'
@@ -97,12 +105,6 @@ def tok_topy(tokens):
             yield 'is not'
         elif kind == 'NOT':
             yield 'not'
-
-        # NULL -> None
-        elif kind == 'NAME' and value == 'NULL':
-            yield 'None'
-        elif kind == 'NAME' and value == 'None':
-            yield 'NULL'
 
         # else if goes back to elif
         elif kind == 'NAME' and value == 'else':

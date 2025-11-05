@@ -6,8 +6,34 @@ def read_python_file(filename, encoding):
         f.seek(0)
         return f.read().decode(encoding)
 
+def swap_keywords(tok, swaps):
+    # swap keywords bidirectionally
+    if tok.name != 'NAME':
+        return tok
+
+    src = tok.src
+    for orig, repl in swaps.items():
+        if src == orig:
+            return tok._replace(src=repl)
+        elif src == repl:
+            return tok._replace(src=orig)  # avoid namespace collision
+    return tok
+
 # convert token stream to c-like tokens
 def tok_toc(tokens):
+    keyword_swaps = {
+        "def": "func",
+        "class": "struct",
+        "import": "include",
+        "from": "using",
+        "True": "true",
+        "False": "false",
+        "None": "NULL",
+        "elif": "else if",
+        "and": "&&",
+        "or": "||",
+        "not": "!"
+    }
     fstring_level = 0;
     tokens = list(tokens)
     i = 0
@@ -34,46 +60,14 @@ def tok_toc(tokens):
             yield tok
             continue
 
-        # replace def with func
-        if tok.name == 'NAME' and tok.src == "def":
-            yield tok._replace(src="func")
-        elif tok.name == 'NAME' and tok.src == "func": # avoid namespace collisions
-            yield tok._replace(src="def")
+        tok = swap_keywords(tok, keyword_swaps)
 
-        # lowercase true and false
-        elif tok.name == 'NAME' and tok.src == "True":
-            yield tok._replace(src="true")
-        elif tok.name == 'NAME' and tok.src == "true": # avoid namespace collisions
-            yield tok._replace(src="True")
-        elif tok.name == 'NAME' and tok.src == "False":
-            yield tok._replace(src="false")
-        elif tok.name == 'NAME' and tok.src == "false": # avoid namespace collisions
-            yield tok._replace(src="False")
-
-        # logic
-        elif tok.name == 'NAME' and tok.src == "and":
-            yield tok._replace(src="&&")
-        elif tok.name == 'NAME' and tok.src == "or":
-            yield tok._replace(src="||")
-        elif tok.name == 'NAME' and tok.src == "is":
+        if tok.name == 'NAME' and tok.src == "is":
             if (next_token and next_token.name == 'NAME' and next_token.src == 'not'):
                 i = j
                 yield tok._replace(src="!==")
             else:
                 yield tok._replace(src="===")
-        elif tok.name == 'NAME' and tok.src == "not":
-            yield tok._replace(src="!")
-
-        # None -> NULL
-        elif tok.name == 'NAME' and tok.src == "None":
-            yield tok._replace(src="NULL")
-        elif tok.name == 'NAME' and tok.src == "NULL": # avoid namespace collisions
-            yield tok._replace(src="None")
-
-        # break elif into else and if
-        elif tok.name == 'NAME' and tok.src == "elif":
-            yield tok._replace(src="else if")
-
         elif tok.name == 'COMMENT':
             # // is floor div
             comment_text = tok.src[1:]
