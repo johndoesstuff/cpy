@@ -65,16 +65,31 @@ def tok_topy(tokens):
                 break
             j += 1
 
+        # replace func with def
         if kind == 'FUNC':
             yield 'def'
         elif kind == 'NAME' and value == 'def':
             yield 'func'
+
+        # make true and false uppercase again
+        elif kind == 'NAME' and value == 'true':
+            yield 'True'
+        elif kind == 'NAME' and value == 'True':
+            yield 'true'
+        elif kind == 'NAME' and value == 'false':
+            yield 'False'
+        elif kind == 'NAME' and value == 'False':
+            yield 'false'
+
+        # else if goes back to elif
         elif kind == 'NAME' and value == 'else':
             if next_kind == 'NAME' and next_value == 'if':
                 yield 'elif'
                 i = j  # skip over the 'if' token
             else:
                 yield 'else'
+
+        # strip comments
         elif kind == 'COMMENT':
             comment_text = value[2:-3].replace("\\*/", "*/")
             yield f"#{comment_text}"

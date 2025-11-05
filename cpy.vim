@@ -47,7 +47,7 @@ endif
 "
 " python3 -c 'import keyword, pprint; pprint.pprint(keyword.kwlist + keyword.softkwlist, compact=True)'
 "
-syn keyword pythonStatement	False None True
+syn keyword pythonStatement	false None true
 syn keyword pythonStatement	as assert break continue del global
 syn keyword pythonStatement	lambda nonlocal pass return with yield
 syn keyword pythonStatement	class func nextgroup=pythonFunction skipwhite
@@ -92,7 +92,7 @@ syn match   pythonMatrixMultiply
 
 syn match   pythonFunction	"\h\w*" display contained
 
-syn region  pythonComment	start="/\*" end="\*/" skip="\\\*/" contains=pythonTodo,@Spell
+syn region  pythonComment start="/\*" end="\*/" skip="\\\*/" contains=pythonTodo,@Spell
 syn keyword pythonTodo		FIXME NOTE NOTES TODO XXX contained
 
 " Triple-quoted strings can contain doctests.
@@ -133,14 +133,14 @@ syn match   pythonEscape	"\\$"
 " https://docs.python.org/reference/lexical_analysis.html#numeric-literals
 if !exists("python_no_number_highlight")
   " numbers (including complex)
-  syn match   pythonNumber	"\<0[oO]\%(_\=\o\)\+\>"
-  syn match   pythonNumber	"\<0[xX]\%(_\=\x\)\+\>"
-  syn match   pythonNumber	"\<0[bB]\%(_\=[01]\)\+\>"
-  syn match   pythonNumber	"\<\%([1-9]\%(_\=\d\)*\|0\+\%(_\=0\)*\)\>"
-  syn match   pythonNumber	"\<\d\%(_\=\d\)*[jJ]\>"
-  syn match   pythonNumber	"\<\d\%(_\=\d\)*[eE][+-]\=\d\%(_\=\d\)*[jJ]\=\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs0[oO]\%(_\=\o\)\+\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs0[xX]\%(_\=\x\)\+\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs0[bB]\%(_\=[01]\)\+\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs\%([1-9]\%(_\=\d\)*\|0\+\%(_\=0\)*\)\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs\d\%(_\=\d\)*[jJ]\>"
+  syn match   pythonNumber	"\%(^\|\W\)\zs\d\%(_\=\d\)*[eE][+-]\=\d\%(_\=\d\)*[jJ]\=\>"
   syn match   pythonNumber
-        \ "\<\d\%(_\=\d\)*\.\%([eE][+-]\=\d\%(_\=\d\)*\)\=[jJ]\=\%(\W\|$\)\@="
+        \ "\%(^\|\W\)\zs\d\%(_\=\d\)*\.\%([eE][+-]\=\d\%(_\=\d\)*\)\=[jJ]\=\%(\W\|$\)\@="
   syn match   pythonNumber
         \ "\%(^\|\W\)\zs\%(\d\%(_\=\d\)*\)\=\.\d\%(_\=\d\)*\%([eE][+-]\=\d\%(_\=\d\)*\)\=[jJ]\=\>"
 endif
@@ -163,7 +163,7 @@ endif
 if !exists("python_no_builtin_highlight")
   " built-in constants
   " 'False', 'True', and 'None' are also reserved words in Python 3
-  syn keyword pythonBuiltin	False True None
+  syn keyword pythonBuiltin	false true None
   syn keyword pythonBuiltin	NotImplemented Ellipsis __debug__
   " constants added by the `site` module
   syn keyword pythonBuiltin	quit exit copyright credits license
@@ -249,7 +249,7 @@ if !exists("python_no_doctest_highlight")
 endif
 
 " Sync at the beginning of class, function, or method definition.
-syn sync match pythonSync grouphere NONE "^\%(def\|class\)\s\+\h\w*\s*[(:]"
+syn sync match pythonSync grouphere NONE "^\%(func\|class\)\s\+\h\w*\s*[(:]"
 
 " The default highlight links.  Can be overridden later.
 hi def link pythonStatement		Statement

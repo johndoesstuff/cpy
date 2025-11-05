@@ -19,12 +19,26 @@ def tok_toc(tokens):
             yield tok
             continue
 
+        # replace def with func
         if tok.name == 'NAME' and tok.src == "def":
             yield tok._replace(src="func")
         elif tok.name == 'NAME' and tok.src == "func": # avoid namespace collisions
             yield tok._replace(src="def")
+
+        # lowercase true and false
+        elif tok.name == 'NAME' and tok.src == "True":
+            yield tok._replace(src="true")
+        elif tok.name == 'NAME' and tok.src == "true": # avoid namespace collisions
+            yield tok._replace(src="True")
+        elif tok.name == 'NAME' and tok.src == "False":
+            yield tok._replace(src="false")
+        elif tok.name == 'NAME' and tok.src == "false": # avoid namespace collisions
+            yield tok._replace(src="False")
+
+        # break elif into else and if
         elif tok.name == 'NAME' and tok.src == "elif":
             yield tok._replace(src="else if")
+
         elif tok.name == 'COMMENT':
             # // is floor div
             comment_text = tok.src[1:]
