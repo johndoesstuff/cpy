@@ -1,0 +1,2 @@
+./test/cpython/test_unicode_identifiers.py
+./test/cpython/module_iso_8859_1.py

@@ -53,7 +53,7 @@ def main():
     c_like = tokenize_rt.tokens_to_src(tokens_c)
 
     if output_file:
-        with open(output_file, 'w', encoding=encoding) as f:
+        with open(output_file, 'w', encoding=encoding, errors='surrogateescape') as f:
             f.write(c_like)
     else:
         for tok in tokens:

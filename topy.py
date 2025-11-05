@@ -1,4 +1,5 @@
 import re, sys, tokenize
+from io import BytesIO
 
 TOKEN_SPEC = [
     ('FUNC',    r'\bfunc\b'),
@@ -87,7 +88,7 @@ def main():
     py_code = c_untokenize(py_tokens)
 
     if output_file:
-        with open(output_file, 'w', encoding=encoding) as f:
+        with open(output_file, 'w', encoding=encoding, errors='surrogateescape') as f:
             f.write(py_code)
     else:
         tokens = c_like_tokenize(code)
