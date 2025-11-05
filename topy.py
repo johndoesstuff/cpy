@@ -96,30 +96,30 @@ def tok_topy(tokens):
 
         # logic
         if kind == 'AND':
-            tokens[i].value = 'and'
+            tokens[i] = (kind, 'and')
         elif kind == 'OR':
-            tokens[i].value = 'or'
+            tokens[i] = (kind, 'or')
         elif kind == 'IS':
-            tokens[i].value = 'is'
+            tokens[i] = (kind, 'is')
         elif kind == 'ISNOT':
-            tokens[i].value = 'is not'
+            tokens[i] = (kind, 'is not')
         elif kind == 'NOT':
-            tokens[i].value = 'not'
+            tokens[i] = (kind, 'not')
 
         # else if goes back to elif
         elif kind == 'NAME' and value == 'else':
             if next_kind == 'NAME' and next_value == 'if':
-                tokens[i].value = 'elif'
-                i = j  # skip over the 'if' token
+                tokens[i] = (kind, 'elif')
+                del tokens[i+1:j+1]
             else:
-                tokens[i].value = 'else'
+                tokens[i] = (kind, 'else')
 
         # strip comments
         elif kind == 'COMMENT':
             comment_text = value[2:-3].replace("\\*/", "*/")
-            tokens[i].value = f"#{comment_text}"
+            tokens[i] = (kind, f"#{comment_text}")
         else:
-            tokens[i].value = value
+            tokens[i] = (kind, value)
 
         # check if starting block and if so replace {}
         block_starts = [
@@ -130,6 +130,7 @@ def tok_topy(tokens):
             'else',
             'for',
             'while',
+            'try',
             'except',
             'finally',
             'with',
@@ -137,18 +138,52 @@ def tok_topy(tokens):
 
         kind, value = tokens[i]
         if kind == 'NAME' and value in block_starts:
-            next_kind = next_value = None
+            # search for next brace after block keyword
+            start_brace_i = -1;
+            end_brace_i = -1;
             j = i + 1
             while j < len(tokens):
                 nk, nv = tokens[j]
-                if nk != 'WS':  # or 'WHITESPACE'
-                    next_kind, next_value = nk, nv
+                if nk == 'OP' and nv == '{':
+                    start_brace_i = j
                     break
                 j += 1
+            
+            # find matching end brace
+            brace_depth = 1
+            j += 1
+            while j < len(tokens):
+                nk, nv = tokens[j]
+                if nk == 'OP' and nv == '{':
+                    brace_depth += 1
+                elif nk == 'OP' and nv == '}':
+                    brace_depth -= 1
+                    if brace_depth == 0:
+                        end_brace_i = j
+                        break
+                j += 1
+
+            # replace start brace with ':' and remove end brace
+            tokens[start_brace_i] = (kind, ':')
+            tokens[end_brace_i] = (kind, '')
+
+            # during conversion to cpy { is padded with one extra space beforehand, if this exists remove it for full rt
+            pre_brace = tokens[start_brace_i - 1]
+            pb_kind, pb_value = pre_brace
+            if pb_kind == 'WS' and pb_value[-1] == ' ':
+                tokens[start_brace_i - 1] = (pb_kind, pb_value[:-1])
+
+            # during conversion to cpy } is also padded with one extra space after, if this exists remove it for full rt
+            post_brace = tokens[end_brace_i + 1]
+            pb_kind, pb_value = post_brace
+            if pb_kind == 'WS' and pb_value[0] == ' ':
+                tokens[end_brace_i + 1] = (pb_kind, pb_value[1:])
+
         i += 1
+    return tokens
 
 def c_untokenize(tokens):
-    code_str = ''.join(tokens)
+    code_str = ''.join(tok[1] for tok in tokens)
     return code_str
 
 

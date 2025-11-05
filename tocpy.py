@@ -63,8 +63,8 @@ def tok_toc(tokens):
 
         if tok.name == 'NAME' and tok.src == "is":
             if (next_token and next_token.name == 'NAME' and next_token.src == 'not'):
-                i = j
                 tokens[i] = tok._replace(src="!==")
+                del tokens[i+1:j+1]
             else:
                 tokens[i] = tok._replace(src="===")
         elif tok.name == 'COMMENT':
