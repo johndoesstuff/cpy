@@ -50,19 +50,38 @@ def c_like_tokenize(code):
         yield kind, value
 
 def tok_topy(tokens):
-    for kind, value in tokens:
+    tokens = list(tokens)
+    i = 0
+    while i < len(tokens):
+        kind, value = tokens[i]
+
+        # find next non-whitespace token
+        next_kind = next_value = None
+        j = i + 1
+        while j < len(tokens):
+            nk, nv = tokens[j]
+            if nk != 'WS':  # or 'WHITESPACE'
+                next_kind, next_value = nk, nv
+                break
+            j += 1
+
         if kind == 'FUNC':
             yield 'def'
         elif kind == 'NAME' and value == 'def':
             yield 'func'
+        elif kind == 'NAME' and value == 'else':
+            if next_kind == 'NAME' and next_value == 'if':
+                yield 'elif'
+                i = j  # skip over the 'if' token
+            else:
+                yield 'else'
         elif kind == 'COMMENT':
-            # remove /* */ and convert to #
-            comment_text = value[2:-3]
-            # for handling cases like: (# */) -> (/* \*/*/) -> (# */)
-            comment_text = comment_text.replace("\\*/", "*/")
+            comment_text = value[2:-3].replace("\\*/", "*/")
             yield f"#{comment_text}"
         else:
             yield value
+
+        i += 1
 
 def c_untokenize(tokens):
     code_str = ''.join(tokens)

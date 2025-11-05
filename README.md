@@ -8,3 +8,4 @@ Features:
   - variables named `func` are now named `def`
 - Comments use `/* ... */` instead of `# ...`
   - to escape comments use `{code} /* ... \*/ ... */ {code}`
+- `elif` has been replaced by `else if`

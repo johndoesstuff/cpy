@@ -23,6 +23,8 @@ def tok_toc(tokens):
             yield tok._replace(src="func")
         elif tok.name == 'NAME' and tok.src == "func": # avoid namespace collisions
             yield tok._replace(src="def")
+        elif tok.name == 'NAME' and tok.src == "elif":
+            yield tok._replace(src="else if")
         elif tok.name == 'COMMENT':
             # // is floor div
             comment_text = tok.src[1:]
