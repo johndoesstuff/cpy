@@ -19,17 +19,19 @@ def swap_keywords(tok, swaps):
             return tok._replace(src=orig)  # avoid namespace collision
     return tok
 
-def find_condition_end(tokens, start_i):
+def find_condition_end(tokens, start_i, start_keyword):
     # find the end of a conditional accounting for both ':' and 'else' cases (inlining cond)
     paren_depth = 0
     brack_depth = 0
     brace_depth = 0
     tern_depth = 0
     i = start_i + 1
-    start_keyword = tokens[i].src
 
     while i < len(tokens):
         tok = tokens[i]
+        print(tok)
+        print(tern_depth)
+        print(start_keyword)
 
         if tok.name == 'OP':
             if tok.src == '(':
@@ -45,16 +47,26 @@ def find_condition_end(tokens, start_i):
             elif tok.src == '}':
                 brace_depth -= 1
 
+        # we are at the end of some closure, going further would be a bad idea....
+        if paren_depth < 0 or brack_depth < 0 or brace_depth < 0 or tern_depth < 0:
+            return i
+
         # stop at top-level colon
-        if tok.name == 'OP' and tok.src == ':' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0 and tern_depth == 0:
+        elif tok.name == 'OP' and tok.src == ':' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0 and tern_depth == 0:
             return i
 
         # stop at top-level 'else' (for inline conditional)
         elif start_keyword == 'if' and tok.name == 'NAME' and tok.src == 'else' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0 and tern_depth == 0:
+            # just for formatting we should backtrack whitespace
+            while tokens[i - 1].name == 'UNIMPORTANT_WS':
+                i -= 1
             return i
 
         # stop at top-level 'if' (for inline for)
         elif start_keyword == 'for' and tok.name == 'NAME' and tok.src == 'if' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0:
+            # just for formatting we should backtrack whitespace
+            while tokens[i - 1].name == 'UNIMPORTANT_WS':
+                i -= 1
             return i
 
         if tok.name == 'NAME':
@@ -190,7 +202,7 @@ def tok_toc(tokens):
             while tokens[j].name == 'COMMENT' or tokens[j].name == 'UNIMPORTANT_WS':
                 j += 1
             tokens[j] = tokens[j]._replace(src="(" + tokens[j].src)
-            end_i = find_condition_end(tokens, j)
+            end_i = find_condition_end(tokens, j, tok.src)
             tokens[end_i - 1] = tokens[end_i - 1]._replace(src=tokens[end_i - 1].src + ")")
             handle_blocking(tokens, end_i - 1)
         elif tok.name == 'NAME' and tok.src == "is":

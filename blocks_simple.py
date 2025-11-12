@@ -1,2 +1,1 @@
-if 'x' if 'a' else 'y':
-    thing()
+if 'x' if 'a' else 'y': thing()
