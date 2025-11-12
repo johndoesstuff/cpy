@@ -138,13 +138,24 @@ def tok_topy(tokens):
 
         kind, value = tokens[i]
         if kind == 'NAME' and value in block_starts:
-            # search for next brace after block keyword
+            # search for next brace after block keyword that isnt
+            # nested in () or []
+            paren_depth = 0
+            brack_depth = 0
             start_brace_i = -1;
             end_brace_i = -1;
             j = i + 1
             while j < len(tokens):
                 nk, nv = tokens[j]
-                if nk == 'OP' and nv == '{':
+                if nk == 'OP' and nv == '(':
+                    paren_depth += 1
+                elif nk == 'OP' and nv == ')':
+                    paren_depth -= 1
+                elif nk == 'OP' and nv == '[':
+                    brack_depth += 1
+                elif nk == 'OP' and nv == ']':
+                    brack_depth -= 1
+                if nk == 'OP' and nv == '{' and paren_depth == 0 and brack_depth == 0:
                     start_brace_i = j
                     break
                 j += 1
@@ -168,10 +179,14 @@ def tok_topy(tokens):
             tokens[end_brace_i] = (kind, '')
 
             # during conversion to cpy { is padded with one extra space beforehand, if this exists remove it for full rt
-            pre_brace = tokens[start_brace_i - 1]
-            pb_kind, pb_value = pre_brace
-            if pb_kind == 'WS' and pb_value[-1] == ' ':
-                tokens[start_brace_i - 1] = (pb_kind, pb_value[:-1])
+            # UNLESS the block is inline
+            if tokens[start_brace_i + 1][0] == 'WS':
+                pre_brace = tokens[start_brace_i - 1]
+                pb_kind, pb_value = pre_brace
+                if pb_kind == 'WS' and pb_value[-1] == ' ':
+                    tokens[start_brace_i - 1] = (pb_kind, pb_value[:-1])
+            else:
+                tokens[start_brace_i], tokens[start_brace_i - 1] = tokens[start_brace_i - 1], tokens[start_brace_i]
 
             # during conversion to cpy } is also padded with one extra space after, if this exists remove it for full rt
             post_brace = tokens[end_brace_i + 1]
