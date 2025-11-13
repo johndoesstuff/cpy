@@ -1,6 +1,8 @@
 import tokenize_rt, re, sys, tokenize
 from io import BytesIO
 
+non_blocking_tokens = set()
+
 def read_python_file(filename, encoding):
     with open(filename, 'rb') as f:
         f.seek(0)
@@ -57,6 +59,8 @@ def find_condition_end(tokens, start_i, start_keyword):
 
         # stop at top-level 'else' (for inline conditional)
         elif start_keyword == 'if' and tok.name == 'NAME' and tok.src == 'else' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0 and tern_depth == 0:
+            # we should note that this else is not a block token!
+            non_blocking_tokens.add(i)
             # just for formatting we should backtrack whitespace
             while tokens[i - 1].name == 'UNIMPORTANT_WS':
                 i -= 1
@@ -80,6 +84,9 @@ def find_condition_end(tokens, start_i, start_keyword):
     return len(tokens) # fallback if no clear end found
 
 def handle_blocking(tokens, i):
+    # token has already been marked as non blocking (else in ternary)
+    if i in non_blocking_tokens:
+        return
     # check for edge case where block is single lined
     # for example:
     #
@@ -120,14 +127,9 @@ def handle_blocking(tokens, i):
     # if not triggered, after ':' we recieve a newline, all is good and we will
     # resolve this when we parse indent tokens
     if next_nonwsi < len(tokens) and tokens[next_nonwsi].name != 'NEWLINE':
-        while j < len(tokens):
-            nt = tokens[j]
-            if nt.name == 'NEWLINE':
-                break
-            j += 1
-        next_nli = j
+        next_nli = find_condition_end(tokens, j, 'null')
         # something has been found after : but before newline,
-        # we need to wrap in {} up until newline
+        # we need to wrap in {}
         if tokens[colon_i + 1].name == 'UNIMPORTANT_WS': # if ws before statement put { after ws
             tokens[colon_i] = tokens[colon_i]._replace(src='') # delete colon
             tokens[colon_i + 1] = tokens[colon_i + 1]._replace(src=tokens[colon_i + 1].src + '{') # delete colon
@@ -162,12 +164,13 @@ def tok_toc(tokens):
         'except',
         'finally',
         'with',
+        'lambda',
     ]
     condition_starts = [
         'if',
         'else if',
         'for',
-        'while'
+        'while',
     ]
     fstring_level = 0;
     tokens = list(tokens)
