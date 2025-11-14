@@ -6,7 +6,7 @@ quote = 3
 what = lambda x {x
 otherthing = lambda x}: x
 func foo(x: int) {return x
-func bar(a: str, b: str)}: return {a {b}}
+func bar(a: str, b: str)}: return {a: b}
 if (arr[1:2] == thing) {
     otherthing()
 
@@ -30,14 +30,14 @@ if (arr[1:2] == thing) {
     print("yes")
 
 } func outer(a: int = 1, b = [i for (i in range(3)) if (i)]) {
-    func inner(x: str = 'a' if (a == 1) else 'b', y = {k {v for (k, v in {'x':1}.items()) if (k == 'x'}})) {
+    func inner(x: str = 'a' if (a == 1) else 'b', y = {k: v for (k, v in {'x':1}.items()) if (k == 'x')}) {
         if (x[0:1] == ('a' if (b[0] == 0) else 'b') && (a if (b) else 0)) {
-            thing = { "weird": (lambda z {z if (z) else {"nested" {[w for (w in range(3)) if (w % 2 == 0}])}}) }
+            thing = { "weird": (lambda z {z if (z) else {"nested": [w for (w in range(3)) if (w % 2 == 0)]}}) }
             if (thing["weird"](NULL)["nested"][0:1] == [0]) {
                 return lambda {print("inside nested lambda")
         } } else}: return {"key" {"value"}}  /* inline suite here */
 
-    } if ((lambda f) {f()})(inner())['key':] if (isinstance(inner, type(lambda{0}))) else NULL {
+    } if ((lambda f {f()})(inner())['key':] if (isinstance(inner, type(lambda{0}))) else None) {
         print("impossible")
     } else {
         pass
@@ -46,7 +46,7 @@ if (arr[1:2] == thing) {
     func __init__(self, data: dict[str, int] = { 'a': 1 if (True) else 0 }) {
         self.data = data
         if ('a' in data) {self.data['b'] = data['a'] + 1
-        else if ((cond := len(data))) > 0}:
+        else if ((cond := len(data))) > 0 {
             while (cond := cond - 1) {
                 self.data[cond] = cond
         } } else {return

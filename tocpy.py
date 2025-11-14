@@ -97,6 +97,7 @@ def handle_blocking(tokens, i):
     # isnt nested in () or [] and detect if an indent is created or if the block is inlined
     paren_depth = 0
     brack_depth = 0
+    brace_depth = 0
     j = i + 1
     while j < len(tokens):
         nt = tokens[j]
@@ -108,7 +109,11 @@ def handle_blocking(tokens, i):
             brack_depth += 1
         elif nt.name == 'OP' and nt.src == ']':
             brack_depth -= 1
-        elif nt.name == 'OP' and nt.src == ':' and paren_depth == 0 and brack_depth == 0:
+        elif nt.name == 'OP' and nt.src == '{':
+            brace_depth += 1
+        elif nt.name == 'OP' and nt.src == '}':
+            brace_depth -= 1
+        elif nt.name == 'OP' and nt.src == ':' and paren_depth == 0 and brack_depth == 0 and brace_depth == 0:
             break
         j += 1
     colon_i = j
@@ -229,8 +234,12 @@ def tok_toc(tokens):
                     prev_colon = pt
                     break
                 j -= 1
-            assert prev_colon.src == ':'
-            tokens[j] = prev_colon._replace(src=" {")
+            print(prev_colon)
+            if prev_colon.src != ':':
+                print("PROBLEM!!")
+                tokens[j] = prev_colon._replace(src=" {")
+            else:
+                tokens[j] = prev_colon._replace(src=" {")
             tokens[i] = tok
         elif tok.name == 'DEDENT':
             tokens[i] = tok._replace(src=tok.src+"} ")
